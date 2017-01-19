@@ -32,11 +32,12 @@ router.get('/users/:username', function(req, res, next){
 
   let tweetsForName;
 
-  client.query('SELECT * FROM users INNER JOIN tweets ON tweets.user_id = users.id WHERE name LIKE $1', [req.params.username],
-                function (err, result) {
+  client.query('SELECT * FROM users INNER
+   JOIN tweets ON tweets.user_id = users.id
+    WHERE name LIKE $1', [req.params.username], function (err, result) {
     if (err) return next(err); // pass errors to Express
     //console.log(result.rows);
-    
+
     tweetsForName = result.rows;
 
 
@@ -54,11 +55,21 @@ router.get('/users/:username', function(req, res, next){
 
 // single-tweet page
 router.get('/tweets/:id', function(req, res, next){
-  var tweetsWithThatId = tweetBank.find({ id: Number(req.params.id) });
-  res.render('index', {
-    title: 'Twitter.js',
-    tweets: tweetsWithThatId // an array of only one element ;-)
+  // var tweetsWithThatId = tweetBank.find({ id: Number(req.params.id) });
+
+
+  client.query('SELECT * FROM tweets WHERE name LIKE $1', [req.params.id], function (err, result) {
+    if (err) return next(err); // pass errors to Express
+    //console.log(result.rows);
+
+    tweetsWithThatId = result.rows;
+
+    res.render('index', {
+      title: 'Twitter.js',
+      tweets: tweetsWithThatId
+    })
   });
+
 });
 
 // create a new tweet
