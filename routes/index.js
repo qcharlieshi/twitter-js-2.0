@@ -7,11 +7,18 @@ module.exports = router;
 
 // a reusable function
 function respondWithAllTweets (req, res, next){
-  var allTheTweets = tweetBank.list();
-  res.render('index', {
-    title: 'Twitter.js',
-    tweets: allTheTweets,
-    showForm: true
+  let allTheTweets;
+
+  client.query('SELECT * FROM tweets', function (err, result) {
+    if (err) return next(err); // pass errors to Express
+    //console.log(result.rows);
+    allTheTweets = result.rows;
+
+    res.render('index', {
+      title: 'Twitter.js',
+      tweets: allTheTweets,
+      showForm: true
+    })
   });
 }
 
@@ -19,15 +26,30 @@ function respondWithAllTweets (req, res, next){
 router.get('/', respondWithAllTweets);
 router.get('/tweets', respondWithAllTweets);
 
+
 // single-user page
 router.get('/users/:username', function(req, res, next){
-  var tweetsForName = tweetBank.find({ name: req.params.username });
-  res.render('index', {
-    title: 'Twitter.js',
-    tweets: tweetsForName,
-    showForm: true,
-    username: req.params.username
+
+  let tweetsForName;
+
+  client.query('SELECT * FROM users INNER JOIN tweets ON tweets.user_id = users.id WHERE name LIKE $1', [req.params.username],
+                function (err, result) {
+    if (err) return next(err); // pass errors to Express
+    //console.log(result.rows);
+    
+    tweetsForName = result.rows;
+
+
+    res.render('index', {
+      title: 'Twitter.js',
+      tweets: tweetsForName,
+      showForm: true,
+      username: req.params.username
+    })
   });
+
+
+
 });
 
 // single-tweet page
@@ -45,11 +67,7 @@ router.post('/tweets', function(req, res, next){
   res.redirect('/');
 });
 
-client.query('SELECT * FROM tweets', function (err, result) {
-  if (err) return next(err); // pass errors to Express
-  var tweets = result.rows;
-  res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
-});
+
 
 // // replaced this hard-coded route with general static routing in app.js
 // router.get('/stylesheets/style.css', function(req, res, next){
