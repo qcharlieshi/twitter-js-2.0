@@ -2,7 +2,7 @@
 var express = require('express');
 var router = express.Router();
 var tweetBank = require('../tweetBank');
-
+let client = require('../db/index.js')
 module.exports = router;
 
 // a reusable function
@@ -43,6 +43,12 @@ router.get('/tweets/:id', function(req, res, next){
 router.post('/tweets', function(req, res, next){
   var newTweet = tweetBank.add(req.body.name, req.body.content);
   res.redirect('/');
+});
+
+client.query('SELECT * FROM tweets', function (err, result) {
+  if (err) return next(err); // pass errors to Express
+  var tweets = result.rows;
+  res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
 });
 
 // // replaced this hard-coded route with general static routing in app.js
